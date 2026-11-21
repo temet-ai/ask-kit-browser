@@ -1,0 +1,43 @@
+id = "temet.browser"
+name = "browser"
+version = "0.1.0"
+min_ask_kit = "0.2.0"
+requires = ["node"]
+says = "what a web page does when a real headless browser loads it: whether it loads and its status and final URL, its title, headings, visible text, links, forms, buttons and images (and whether each image loaded), console errors and warnings, uncaught page errors, failed and slow requests, whether an element or a text is present and visible, a screenshot at a phone and a desktop width saved to a file, measured layout faults (horizontal overflow, clipped text, images with no size, small tap targets, low contrast, colours that red-green colour blindness cannot tell apart), and what a short click, type or key press sequence does; for local dev servers, previews and deployed pages"
+keywords = ["browser", "headless", "page", "renders?", "blank page", "white screen", "console errors?", "screenshot", "mobile width", "viewport", "responsive", "overflow", "contrast", "colou?r.?blind", "deuteranopia", "protanopia", "hydration", "localhost:\\d+", "playwright", "chromium", "tap targets?", "broken images?"]
+route_hint = "what a web page does or looks like when a browser loads it (does it render, console and network errors, is an element there, how it fits a phone and a desktop width, a screenshot path, contrast and colour-blind checks, what a click does) is browser; it opens pages in a fresh headless browser with an empty profile and never uses the caller's own Chrome, its profiles, cookies or logins, so anything that needs a logged-in page is not this kit and the calling session's own browser tools are needed; a Storybook story is storybook; the page's source code, where something is defined or how a component works is code; running tests, the build or the type check is npm; whether a service or dev server is up or down is ops; what a past session did is sessions"
+cite = "the URL and status, a selector or `file:line` from a console message, and a screenshot path"
+instructions = "instructions.md"
+acts = [
+  "browser.type into a password field, or into any field of a page on a host that is not local; browser click on a button that submits a form; browser press Enter in a form field",
+  "any request other than GET that a step causes after the page has loaded (form posts, fetch calls made by a click)",
+]
+
+[[settings]]
+key = "PLAYWRIGHT_MODULE"
+about = "the folder of a Node playwright or playwright-core package (install one with: mise use -g npm:playwright); found under mise's npm-playwright installs and the global node_modules"
+detect = ["node", "-e", "const fs=require('fs'),p=require('path'),h=require('os').homedir();const c=[];const mise=process.env.MISE_DATA_DIR||p.join(h,'.local/share/mise');try{for(const v of fs.readdirSync(p.join(mise,'installs/npm-playwright')).sort().reverse())c.push(p.join(mise,'installs/npm-playwright',v,'node_modules/playwright'))}catch{}for(const r of ['/usr/lib/node_modules','/usr/local/lib/node_modules',p.join(process.execPath,'../../lib/node_modules')])for(const n of ['playwright-core','playwright'])c.push(p.join(r,n));const f=c.find(d=>fs.existsSync(p.join(d,'package.json')));if(f)console.log(f)"]
+required = true
+
+[[settings]]
+key = "BROWSER_EXECUTABLE"
+about = "a Chromium or Chrome binary to launch; left empty, the newest Playwright build under ~/.cache/ms-playwright is used, then /usr/bin/chromium and google-chrome-stable"
+default = ""
+
+[[sources]]
+kind = "module"
+name = "browser"
+module = "browser.mjs"
+api = "api.d.ts"
+
+[[roles]]
+name = "page-checker"
+when = "a question about whether a page works or renders: it loads, it is blank, it throws errors, an element is there, a click does something"
+patterns = ["\\b(does|did|is|why)\\b.*\\b(page|site|route|url|localhost)\\b.*\\b(load|render|work|blank|white|error|broken|404|500)\\w*", "\\bconsole errors?\\b", "\\bblank (page|screen)\\b", "\\bwhite screen\\b"]
+instructions = "roles/page-checker.md"
+
+[[roles]]
+name = "visual-reviewer"
+when = "a question about how a page looks or fits: phone and desktop width, overflow, contrast, colour-blind safety, a screenshot to look at"
+patterns = ["\\b(mobile|phone|narrow|responsive|viewport)\\b", "\\bscreenshots?\\b", "\\b(contrast|colou?r.?blind|deuteranopia|protanopia)\\b", "\\b(overflow|clipped|cut off|too small)\\b"]
+instructions = "roles/visual-reviewer.md"

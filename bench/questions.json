@@ -1,0 +1,14 @@
+{
+  "about": "The kinds of question agents answer by hand to check a web page (mostly through a browser extension or hand-written Playwright screenshot scripts, and curl of a local dev server): does the page load and render, what errors does it throw, is an element there, how does it fit a phone width, what does a click do, and is it safe for red-green colour blindness. Each is put to a public page whose answer is fixed at the time of writing: https://temet-ai.github.io/ask-kit/ (the ask-kit kits page) and https://temet.ai/. The pages are read by a real browser, so a later redesign of either changes an expectation. Local dev servers are left out because their answer depends on the machine.",
+  "questions": [
+    { "id": "page-loads", "q": "Does https://temet-ai.github.io/ask-kit/ load and render? Give its status and its page title.", "expect": ["200", "ask-kit kits"] },
+    { "id": "console-errors", "q": "Does https://temet.ai/ load without console errors or failed requests? Name any that happen and the file or URL they come from.", "expect": ["cloudflareinsights", "beacon"] },
+    { "id": "find-element", "q": "Is the text \"Reads only\" on https://temet-ai.github.io/ask-kit/, is it visible at a desktop width, and what kind of element holds it?", "expect": ["button", "visible"] },
+    { "id": "phone-width", "q": "At a 390 px phone width, does https://temet-ai.github.io/ask-kit/ scroll sideways, and which image has no width and height set?", "expect": ["ask-kit-logo\\.png"], "any": ["not scroll|no horizontal|does not overflow|390", "no overflow"] },
+    { "id": "click-flow", "q": "On https://temet-ai.github.io/ask-kit/ click the \"Reads only\" filter. Which kit is left on the page?", "expect": ["claude-code-docs"] },
+    { "id": "colour-blind", "q": "Check https://temet.ai/ at a desktop width for colour pairs that are hard to tell apart with red-green colour blindness. Give the colours and which simulation makes them close.", "expect": ["#3ad8c4", "protanopia"] },
+    { "id": "screenshot", "q": "Take a screenshot of https://temet-ai.github.io/ask-kit/ at 390 px wide and give me the file path.", "expect": ["\\.png", "390"] },
+    { "id": "check-shot", "do": "check", "params": { "url": "https://temet-ai.github.io/ask-kit/" }, "expect": ["\"rendered\": true", "ask-kit kits", "\"status\": 200"] },
+    { "id": "errors-shot", "do": "errors", "params": { "url": "https://temet.ai/" }, "expect": ["cloudflareinsights", "ERR_CONNECTION_RESET|net::ERR"] }
+  ]
+}
