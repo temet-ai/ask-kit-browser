@@ -19,11 +19,10 @@ export default async function ({ browser }, { url, widths, fullPage = false, sim
   const u = toUrl(url);
   const ws = (Array.isArray(widths) ? widths : String(widths ?? "390,1440").split(/[,\s]+/)).map(Number).filter((n) => n >= 200 && n <= 4000).slice(0, 4);
   const host = new URL(u).host.replace(/[^a-z0-9.-]+/gi, "_");
-  const shots = [];
-  for (const width of ws.length ? ws : [390, 1440]) {
+  const shots = await Promise.all((ws.length ? ws : [390, 1440]).map(async (width) => {
     const path = dir ? `${String(dir).replace(/\/$/, "")}/${host}-${width}${fullPage ? "-full" : ""}${simulate ? "-" + simulate : ""}.png` : undefined;
     const r = await browser.screenshot(u, { width, fullPage: !!fullPage, simulate, path, steps, timeoutMs });
-    shots.push({ width, path: r.path, bytes: r.bytes, imageWidth: r.width, imageHeight: r.height, fullPage: r.fullPage, simulate: r.simulate, status: r.status, loadError: r.loadError });
-  }
+    return { width, path: r.path, bytes: r.bytes, imageWidth: r.width, imageHeight: r.height, fullPage: r.fullPage, simulate: r.simulate, status: r.status, loadError: r.loadError };
+  }));
   return { url: u, shots, note: "image files: look at them with a tool that can see images; this script measures nothing about how they look" };
 }

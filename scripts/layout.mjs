@@ -17,13 +17,12 @@ const list = (w) => (Array.isArray(w) ? w : String(w ?? "390,1440").split(/[,\s]
 
 export default async function ({ browser }, { url, widths, tapMin, steps, timeoutMs } = {}) {
   const u = toUrl(url);
-  const out = [];
-  for (const width of list(widths).length ? list(widths) : [390, 1440]) {
+  const out = await Promise.all((list(widths).length ? list(widths) : [390, 1440]).map(async (width) => {
     const m = await browser.measure(u, { width, tapMin, steps, timeoutMs });
-    if (m.error) { out.push({ width, loadError: m.loadError, error: m.error }); continue; }
+    if (m.error) return { width, loadError: m.loadError, error: m.error };
     const ex = (list, f, total = list.length, n = 3) => [...list.slice(0, n).map(f), ...(total > n ? [`(+${total - n} more)`] : [])];
     const side = (c) => `${c.colour} ${c.uses} ${c.sample}${c.text ? ` "${c.text}"` : ""}`;
-    out.push({
+    return {
       width, status: m.status, problems: m.problems, scrollWidth: m.scrollWidth,
       wide: ex(m.wide, (w) => `${w.selector} ${w.box}, ${w.overshoot}px past the edge`, m.widePlus),
       clipped: ex(m.clipped.examples, (e) => `${e.selector} ${e.box} ${e.kind}: "${e.text.slice(0, 30)}"`, m.clipped.count),
@@ -32,7 +31,7 @@ export default async function ({ browser }, { url, widths, tapMin, steps, timeou
       tapTargets: ex(m.tapTargets.examples, (e) => `${e.selector} ${e.box}${e.text ? ` "${e.text}"` : ""}`, m.tapTargets.count),
       contrast: ex(m.contrast.groups, (g) => `${g.fg} on ${g.background} = ${g.ratio}, needs ${g.needed}: ${g.count}x, e.g. ${g.sample} "${g.text.slice(0, 30)}"`, m.contrast.groups.length),
       colourPairs: ex(m.colourBlind.pairs, (p) => `${side(p.a)} vs ${side(p.b)}: ${p.distanceNormal} apart, ${p.distanceSimulated} under ${p.seenAs}${p.redGreen ? ", red-green" : ""}`, m.colourBlind.pairs.length + m.colourBlind.pairsMore),
-    });
-  }
+    };
+  }));
   return { url: u, widths: out, note: "These are measurements. Whether the page looks right is for someone who can see a screenshot (scripts.run(\"shot\"))." };
 }
